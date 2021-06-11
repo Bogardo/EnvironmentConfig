@@ -1,0 +1,18 @@
+{
+    "name": "bogardo/environmentconfig",
+    "description": "Import magento environment configuration from yaml or json file",
+    "require": {
+        "php": "^7.3.0",
+        "semaio/magento2-configimportexport": "^3.5.0"
+    },
+    "type": "magento2-module",
+    "license": "OSL-3.0",
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Bogardo\\EnvironmentConfig\\": ""
+        }
+    }
+}
