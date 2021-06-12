@@ -10,6 +10,7 @@ use Semaio\ConfigImportExport\Model\Converter\ScopeConverterInterface;
 use Semaio\ConfigImportExport\Model\File\Reader\ReaderInterface;
 use Semaio\ConfigImportExport\Model\Processor\AbstractProcessor;
 use Semaio\ConfigImportExport\Model\Validator\ScopeValidatorInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 class ImportProcessor extends AbstractProcessor implements ImportProcessorInterface
 {
@@ -39,18 +40,26 @@ class ImportProcessor extends AbstractProcessor implements ImportProcessorInterf
     protected $finder;
 
     /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
+    protected $encryptor;
+
+    /**
      * @param \Magento\Framework\App\Config\Storage\WriterInterface              $configWriter
      * @param \Semaio\ConfigImportExport\Model\Validator\ScopeValidatorInterface $scopeValidator
      * @param \Semaio\ConfigImportExport\Model\Converter\ScopeConverterInterface $scopeConverter
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      */
     public function __construct(
         WriterInterface $configWriter,
         ScopeValidatorInterface $scopeValidator,
-        ScopeConverterInterface $scopeConverter
+        ScopeConverterInterface $scopeConverter,
+        EncryptorInterface $encryptor
     ) {
         $this->configWriter = $configWriter;
         $this->scopeValidator = $scopeValidator;
         $this->scopeConverter = $scopeConverter;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -161,7 +170,7 @@ class ImportProcessor extends AbstractProcessor implements ImportProcessorInterf
                 }
 
                 $return[] = [
-                    'value' => $value,
+                    'value' => $this->convertValue($value),
                     'scope' => $scope,
                     'scope_id' => $scopeId,
                 ];
@@ -169,5 +178,28 @@ class ImportProcessor extends AbstractProcessor implements ImportProcessorInterf
         }
 
         return $return;
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    protected function convertValue(string $value): string
+    {
+        preg_match("/^\!(?<type>\w+?)\s(?<value>.+)/", $value, $matches);
+
+        if (!empty($matches) && !empty($matches['type']) && !empty($matches['value'])) {
+            switch ($matches['type']) {
+                case 'encrypted':
+                    $value = $this->encryptor->encrypt($matches['value']);
+                    break;
+                default:
+                    $value = $value;
+                    break;
+            }
+        }
+
+        return $value;
     }
 }

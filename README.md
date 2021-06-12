@@ -41,6 +41,16 @@ web/secure/base_url:
     0: 'https://magento-app.com/'
 ```
 
+**Encrypted values**
+
+If you need to save encrypted values but prefer to store the decryted value in your yaml or json file you can use the `!encryted` prefix.
+
+```
+service/api/key:
+  default:
+    0: '!encrypted supersecretapikey'
+```
+
 **Apply changes (manually)**
 
 Apply changes using the defaults:
